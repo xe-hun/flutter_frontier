@@ -1,6 +1,6 @@
 # flutter_frontier
 
-A flutter product depicting a single page with the ability to change the app theme
+A flutter mobile application depicting a single page with the functionality to change the app theme
 
 ## Introduction
 
