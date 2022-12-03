@@ -1,37 +1,104 @@
-// import 'package:hive/hive.dart';
+import 'dart:math';
 
 import 'package:flutter_frontier/domain/save_box/save_box.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:isar/isar.dart';
 import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 
-// abstract class SaveBox {
-//   Future<int> write<T>({required T object});
+// @GenerateNiceMocks([
+//   MockSpec<Isar>(unsupportedMembers: {#txnSync, #writeTxnSync})
+// ])
 
-//   Future<T?> read<T, X>({required X key});
-// }
+import '../../schema/prefs_test.dart';
+@GenerateNiceMocks([
+  MockSpec<Isar>(
+    fallbackGenerators: {
+      #txnSync: txnSyncX,
+      #writeTxnSync: writeTxnSyncX,
+      #writeTxn: writeTxnX,
+    },
+  )
+])
+// class MockIsarCollection<T> extends Mock implements IsarCollection<T> {}
 
-// class SaveBoxImpl implements SaveBox {
-//   SaveBoxImpl(this.isar);
-//   final Isar isar;
+@GenerateNiceMocks([MockSpec<IsarCollection>()])
+import 'save_box_test.mocks.dart';
 
-//   @override
-//   Future<T?> read<T, X>({required X key}) async {
-//     if (X is int) {
-//       return (await isar.collection<T>().get(key as int));
-//     }
-//     throw Exception('required Type:key must be of type int');
-//   }
+T txnSyncX<T>(T Function()? callback) {
+  final s = callback?.call();
+  if (s != null) return s;
+  throw 'callback cannot return null';
+}
 
-//   @override
-//   Future<int> write<T>({required T object}) async {
-//     return isar.writeTxn(
-//       () => isar.collection<T>().put(
-//             object,
-//           ),
-//     );
-//   }
-// }
+T writeTxnSyncX<T>(T Function()? callback, {bool? silent = false}) {
+  final s = callback?.call();
+  if (s != null) return s;
+  throw 'callback cannot return null';
+}
 
-@GenerateNiceMocks([MockSpec<SaveBox>()])
+Future<T> writeTxnX<T>(Future<T> Function()? callback,
+    {bool? silent = false}) async {
+  final s = await callback?.call();
+  if (s != null) return s;
+  throw 'callback cannot return null';
+}
+
+IsarCollection<T> collectionX<T>() {
+  return MockIsarCollection<T>();
+}
+
 void main() {
-  SaveBoxImpl saveBoxImpl;
+  late SaveBoxImpl saveBoxImpl;
+  late MockIsar isar;
+
+  setUp(() {
+    isar = MockIsar();
+    saveBoxImpl = SaveBoxImpl(isar);
+  });
+
+  group('save', () {
+    test('should return key of object if stored successfully', () async {
+      //arrange
+      final id = Random().nextInt(500);
+      final prefs = PrefsTest()..id = id;
+      final isarCollection = MockIsarCollection<PrefsTest>();
+      when(isar.collection<PrefsTest>()).thenReturn(isarCollection);
+      when(isarCollection.put(prefs)).thenAnswer((_) => Future.value(prefs.id));
+      when(isar.writeTxn(() => isarCollection.put(prefs)))
+          .thenAnswer((_) => Future.value(prefs.id));
+
+      //act
+      final result = await saveBoxImpl.save(object: prefs);
+      //assert
+      verify(isarCollection.put(prefs));
+      expect(result, id);
+    });
+  });
+
+  group('read', () {
+    test('should return stored object from the storage', () async {
+      //arrange
+      final prefs = PrefsTest();
+      final isarCollection = MockIsarCollection<PrefsTest>();
+      when(isar.collection<PrefsTest>()).thenReturn(isarCollection);
+
+      when(isarCollection.get(0)).thenAnswer((_) => Future.value(prefs));
+
+      //act
+      final result = await saveBoxImpl.read<PrefsTest, int>(key: 0);
+      //assert
+      verify(isarCollection.get(0));
+      expect(result, prefs);
+    });
+
+    test('should throw exception if key passed is not of type int', () async {
+      //arrange
+
+      //act
+      final result = saveBoxImpl.read<PrefsTest, String>(key: '');
+      //assert
+      expect(() => result, throwsException);
+    });
+  });
 }

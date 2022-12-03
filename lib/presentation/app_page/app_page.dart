@@ -3,31 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_frontier/application/core/ui_objects.dart';
 import 'package:flutter_frontier/application/theme/theme_bloc.dart';
 
-class InitialPage extends StatelessWidget {
-  const InitialPage({super.key});
+class AppPage extends StatelessWidget {
+  const AppPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Button App'),
-        actions: [
-          PopupMenuButton(
-              icon: const Icon(Icons.menu),
-              itemBuilder: (_) {
-                return [
-                  themeMenuItem(
-                      label: 'Light Theme',
-                      context: context,
-                      themeType: const ThemeType.light()),
-                  themeMenuItem(
-                      label: 'Dark Theme',
-                      context: context,
-                      themeType: const ThemeType.dark()),
-                ];
-              }),
-        ],
-      ),
+      appBar: appBar(context),
       body: SizedBox(
         width: double.infinity,
         child: Column(
@@ -43,6 +25,29 @@ class InitialPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  AppBar appBar(BuildContext context) {
+    return AppBar(
+      // automaticallyImplyLeading: false,
+      title: const Text('App Page'),
+      actions: [
+        PopupMenuButton(
+            icon: const Icon(Icons.menu),
+            itemBuilder: (_) {
+              return [
+                themeMenuItem(
+                    label: 'Light Theme',
+                    context: context,
+                    themeType: const ThemeType.light()),
+                themeMenuItem(
+                    label: 'Dark Theme',
+                    context: context,
+                    themeType: const ThemeType.dark()),
+              ];
+            }),
+      ],
     );
   }
 

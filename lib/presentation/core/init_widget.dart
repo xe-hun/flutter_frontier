@@ -5,8 +5,8 @@ import 'package:flutter_frontier/application/theme/theme_bloc.dart';
 import 'package:flutter_frontier/injectable.dart';
 import 'package:flutter_frontier/main.dart';
 
-class AppWidget extends StatelessWidget {
-  const AppWidget({Key? key}) : super(key: key);
+class InitWidget extends StatelessWidget {
+  const InitWidget({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
